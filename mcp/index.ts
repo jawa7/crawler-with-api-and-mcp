@@ -103,7 +103,7 @@ server.tool(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        uri: params.url,
+        url: params.url,
         title: params.title,
         description: params.description,
         category: params.category,

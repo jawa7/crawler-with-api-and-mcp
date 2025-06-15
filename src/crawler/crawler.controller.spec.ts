@@ -2,12 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CrawlerController } from './crawler.controller';
 import { CrawlerService } from './crawler.service';
 import { TaskQueueService } from './crawler.task-queue.service';
-import { CrawledWebPage } from './interface/crawled-webpage.interface';
 import { UrlDto } from './dto/url.dto';
 import { DepthDto } from './dto/depth.dto';
+import { CrawledWebPageDto } from 'src/common/dto/crawled-webpage.dto';
 
-const mockCrawled: CrawledWebPage = {
-  uri: 'https://example.com',
+
+const mockCrawled: CrawledWebPageDto = {
+  url: 'https://example.com',
   title: 'Example',
   description: 'desc',
   category: 'webpage',
@@ -21,7 +22,7 @@ describe('CrawlerController', () => {
 
   const mockCrawlerService = {
     run: jest.fn(async (_urls, options) => {
-      await options.handler(mockCrawled.uri, () => ({
+      await options.handler(mockCrawled.url, () => ({
         text: () => 'stub',
         attr: () => 'stub',
         first: () => ({ text: () => 'stub' }),
@@ -54,7 +55,7 @@ describe('CrawlerController', () => {
     const request = { url: 'https://example.com' } as UrlDto;
     const result = await crawlerController.crawlOneWebPage(request);
     expect(Array.isArray(result)).toBe(true);
-    expect(result[0].uri).toBe(mockCrawled.uri);
+    expect(result[0].url).toBe(mockCrawled.url);
     expect(crawlerService.run).toHaveBeenCalledWith(
       ['https://example.com'],
       expect.objectContaining({ maxDepth: 1 }),

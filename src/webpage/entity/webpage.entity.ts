@@ -26,4 +26,8 @@ export class WebPage {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  constructor(entity: Partial<WebPage>) {
+    Object.assign(this, entity);
+  }
 }

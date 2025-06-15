@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WebPageController } from './webpage.controller';
 import { WebPageService } from './webpage.service';
 import { WebPage } from './entity/webpage.entity';
-import { CrawledWebPage } from 'src/crawler/interface/crawled-webpage.interface';
 import { WebPageUrlQueryDto } from './dto/url.dto';
+import { CrawledWebPageDto } from '../common/dto/crawled-webpage.dto';
 
 const mockWebPage: WebPage = {
   id: 1,
@@ -26,6 +26,8 @@ describe('WebPageController', () => {
     saveOrUpdateWebPage: jest.fn().mockResolvedValue(mockWebPage),
     checkWebPageExists: jest.fn().mockResolvedValue(true),
     getWebPage: jest.fn().mockResolvedValue(mockWebPage),
+    updateWebPage: jest.fn().mockResolvedValue(mockWebPage),
+    createWebPage: jest.fn().mockResolvedValue(mockWebPage),
   };
 
   beforeEach(async () => {
@@ -43,11 +45,11 @@ describe('WebPageController', () => {
   });
 
   it('should update a webpage and return message', async () => {
-    const crawled: CrawledWebPage = { ...mockWebPage, uri: mockWebPage.url };
-    const result = await controller.saveWebPage(crawled);
+    const crawledWebPageDto: CrawledWebPageDto = { ...mockWebPage, url: mockWebPage.url };
+    const result = await controller.updateWebPage(mockWebPage.url, crawledWebPageDto);
     expect(result.message).toBe('Page updated');
     expect(result.page).toEqual(mockWebPage);
-    expect(service.saveOrUpdateWebPage).toHaveBeenCalledWith(crawled);
+    expect(service.updateWebPage).toHaveBeenCalledWith(mockWebPage.url, crawledWebPageDto);
   });
 
   it('should check if webpage exists', async () => {
@@ -78,10 +80,10 @@ describe('WebPageController', () => {
 
   it('should save a new webpage and return message', async () => {
     serviceMock.checkWebPageExists.mockResolvedValueOnce(false);
-    const crawled: CrawledWebPage = { ...mockWebPage, uri: mockWebPage.url };
-    const result = await controller.saveWebPage(crawled);
+    const crawledWebPageDto: CrawledWebPageDto = { ...mockWebPage, url: mockWebPage.url };
+    const result = await controller.saveWebPage(crawledWebPageDto);
     expect(result.message).toBe('Page saved');
     expect(result.page).toEqual(mockWebPage);
-    expect(service.saveOrUpdateWebPage).toHaveBeenCalledWith(crawled);
+    expect(service.createWebPage).toHaveBeenCalledWith(crawledWebPageDto);
   });
 });

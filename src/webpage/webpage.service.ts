@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WebPage } from './entity/webpage.entity';
 import { Repository } from 'typeorm';
-import { CrawledWebPage } from '../crawler/interface/crawled-webpage.interface';
+import { CrawledWebPageDto } from '../common/dto/crawled-webpage.dto';
 
 @Injectable()
 export class WebPageService {
@@ -15,32 +15,33 @@ export class WebPageService {
     private readonly webpageRepository: Repository<WebPage>,
   ) {}
 
-  async saveOrUpdateWebPage(crawled: CrawledWebPage): Promise<WebPage> {
-    this.logger.log(`Saving web page: ${crawled.uri}`);
+  async createWebPage(crawledWebPageDto: CrawledWebPageDto): Promise<WebPage> {
+    this.logger.log(`Creating web page: ${crawledWebPageDto.url}`);
     try {
-      let page = await this.webpageRepository.findOneBy({ url: crawled.uri });
-      if (page) {
-        page.title = crawled.title;
-        page.description = crawled.description;
-        page.category = crawled.category;
-        page.text = crawled.text;
-        page.wholePage = crawled.wholePage || page.wholePage;
-        this.logger.log(`Updating existing web page: ${crawled.uri}`);
-        return this.webpageRepository.save(page);
-      } else {
-        page = this.webpageRepository.create({
-          url: crawled.uri,
-          title: crawled.title,
-          description: crawled.description,
-          category: crawled.category,
-          text: crawled.text,
-          wholePage: crawled.wholePage,
-        });
-        this.logger.log(`Creating new web page: ${crawled.uri}`);
-        return this.webpageRepository.save(page);
-      }
+      const webPage = new WebPage({
+        ...crawledWebPageDto
+      })
+      return this.webpageRepository.create(webPage);
     } catch (error) {
-      this.logger.error('Error saving or updating webpage', error);
+      this.logger.error('Error creating webpage', error);
+      throw error;
+    }
+  }
+
+  async updateWebPage(
+    url: string,
+    crawledWebPageDto: CrawledWebPageDto,
+  ): Promise<WebPage> {
+    this.logger.log(`Updating web page: ${url}`);
+    try {
+      const page = await this.webpageRepository.findOneBy({ url });
+      if (!page) {
+        throw new Error(`Web page ${url} not found`);
+      }
+      Object.assign(page, crawledWebPageDto);
+      return this.webpageRepository.save(page);
+    } catch (error) {
+      this.logger.error('Error updating webpage', error);
       throw error;
     }
   }
@@ -59,7 +60,11 @@ export class WebPageService {
   async getWebPage(url: string): Promise<WebPage | null> {
     this.logger.log(`Getting web page: ${url}`);
     try {
-      return this.webpageRepository.findOneBy({ url });
+      const page = await this.webpageRepository.findOneBy({ url });
+      if (!page) {
+        return null;
+      }
+      return page;
     } catch (error) {
       this.logger.error('Error getting webpage', error);
       throw error;

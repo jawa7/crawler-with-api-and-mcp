@@ -3,7 +3,7 @@ import { WebPageService } from './webpage.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { WebPage } from './entity/webpage.entity';
 import { Repository } from 'typeorm';
-import { CrawledWebPage } from '../crawler/interface/crawled-webpage.interface';
+import { CrawledWebPageDto } from '../common/dto/crawled-webpage.dto';
 
 const mockWebPage: WebPage = {
   id: 1,
@@ -18,7 +18,7 @@ const mockWebPage: WebPage = {
   updatedAt: new Date(),
 };
 
-const crawled: CrawledWebPage = { ...mockWebPage, uri: mockWebPage.url };
+const crawledWebPageDto: CrawledWebPageDto = { ...mockWebPage, url: mockWebPage.url };
 
 describe('WebPageService', () => {
   let service: WebPageService;
@@ -46,26 +46,14 @@ describe('WebPageService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should update an existing webpage', async () => {
-    repo.findOneBy.mockResolvedValueOnce(mockWebPage);
-    repo.save.mockResolvedValueOnce(mockWebPage);
-    const result = await service.saveOrUpdateWebPage(crawled);
-    expect(repo.findOneBy).toHaveBeenCalledWith({ url: crawled.uri });
-    expect(repo.save).toHaveBeenCalledWith(
-      expect.objectContaining({ url: crawled.uri }),
-    );
-    expect(result).toEqual(mockWebPage);
-  });
-
   it('should create a new webpage', async () => {
     repo.findOneBy.mockResolvedValueOnce(null);
     repo.create.mockReturnValueOnce(mockWebPage);
-    repo.save.mockResolvedValueOnce(mockWebPage);
-    const result = await service.saveOrUpdateWebPage(crawled);
+    const result = await service.createWebPage(crawledWebPageDto);
     expect(repo.create).toHaveBeenCalledWith(
-      expect.objectContaining({ url: crawled.uri }),
+      expect.objectContaining({ url: crawledWebPageDto.url }),
     );
-    expect(repo.save).toHaveBeenCalledWith(mockWebPage);
+    expect(repo.create).toHaveBeenCalledWith(mockWebPage);
     expect(result).toEqual(mockWebPage);
   });
 
@@ -83,5 +71,19 @@ describe('WebPageService', () => {
     const result = await service.getWebPage('https://google.com');
     expect(result).toEqual(mockWebPage);
     expect(repo.findOneBy).toHaveBeenCalledWith({ url: 'https://google.com' });
+  });
+
+  it('should update a webpage', async () => {
+    repo.findOneBy.mockResolvedValueOnce(mockWebPage);
+    repo.save.mockResolvedValueOnce(mockWebPage);
+    const result = await service.updateWebPage(mockWebPage.url, crawledWebPageDto);
+    expect(repo.findOneBy).toHaveBeenCalledWith({ url: mockWebPage.url });
+    expect(repo.save).toHaveBeenCalledWith(expect.objectContaining({ url: mockWebPage.url }));
+    expect(result).toEqual(mockWebPage);
+  });
+
+  it('should throw if webpage not found for update', async () => {
+    repo.findOneBy.mockResolvedValueOnce(null);
+    await expect(service.updateWebPage(mockWebPage.url, crawledWebPageDto)).rejects.toThrow('Web page https://google.com not found');
   });
 });

@@ -4,7 +4,7 @@ import { IsString, IsOptional } from 'class-validator';
 export class CrawledWebPageDto {
   @ApiProperty({ example: 'https://example.com' })
   @IsString()
-  uri: string;
+  url: string;
 
   @ApiProperty({ example: 'Example Title' })
   @IsString()
