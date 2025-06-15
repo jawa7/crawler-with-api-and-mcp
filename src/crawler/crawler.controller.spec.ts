@@ -51,11 +51,10 @@ describe('CrawlerController', () => {
     expect(crawlerController).toBeDefined();
   });
 
-  it('crawlOneWebPage returns CrawledWebPage[]', async () => {
+  it('crawlOneWebPage returns CrawledWebPage', async () => {
     const request = { url: 'https://example.com' } as UrlDto;
     const result = await crawlerController.crawlOneWebPage(request);
-    expect(Array.isArray(result)).toBe(true);
-    expect(result[0].url).toBe(mockCrawled.url);
+    expect(result.url).toBe(mockCrawled.url);
     expect(crawlerService.run).toHaveBeenCalledWith(
       ['https://example.com'],
       expect.objectContaining({ maxDepth: 1 }),
