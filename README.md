@@ -93,7 +93,8 @@ A typical MCP client workflow might look like:
    - Resource: `crawl://https://example.com`
    - Get the crawled data from the response.
 3. **Add the crawled webpage to the database:**
-   - Tool: `add_webpage_to_database` with the crawled data (fields: url, title, description, category, etc.)
+   - Tool: `add_webpage_to_database` with the crawled data (fields: url, title, description, category, text, ...)
+   - **Note:** The field must be named `url` (not `uri`) in the payload for correct operation.
 4. **Summarize the result:**
    - Tool: `return_full_webpage_html` with `{ url: 'https://example.com' }`
    - Use the returned HTML/text for further processing or LLM summarization.
